@@ -113,6 +113,7 @@
             class="outline secondary"
             on:click={() => {
                 db.auth.signOut();
+                goto("/");
             }}>Ausloggen</button
         >
     {:else}
