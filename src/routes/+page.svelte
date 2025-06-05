@@ -23,6 +23,10 @@
             data: { session },
         } = await db.auth.getSession();
         user = session?.user;
+        await loadEvaluations();
+    });
+
+    async function loadEvaluations() {
         const { data, error: err } = await db.from("evaluations").select("*");
 
         if (err) {
@@ -32,7 +36,7 @@
             evaluations = data;
             console.log("Fetched Evaluations:", data);
         }
-    });
+    }
 
     async function sendMagicLink() {
         const { error } = await db.auth.signInWithOtp({ email });
@@ -58,7 +62,7 @@
 
         message = error ? "Error: " + error.message : "Bewertung eingereicht!";
         rated = true;
-        goto("/");
+        await loadEvaluations();
     }
 </script>
 
@@ -68,7 +72,6 @@
 {:else if evaluations.length === 0}
     <p>Noch keine Bewertungen</p>
 {:else}
-    <h1>Alle Bewertungen</h1>
     <ul>
         {#each evaluations as e}
             <li>{e.name} rated {e.rating}</li>
