@@ -2,6 +2,7 @@
     import { onMount } from "svelte";
     import { db } from "$lib/supabaseClient";
     import type { User } from "@supabase/supabase-js";
+    import { goto } from "$app/navigation";
 
     let evaluations: any[] = [];
 
@@ -14,6 +15,8 @@
     let name = "";
     let rating: number = 1;
     let comment = "";
+
+    let rated = false;
 
     onMount(async () => {
         const {
@@ -50,9 +53,12 @@
         const { error } = await db.from("evaluations").insert({
             name,
             rating,
+            comment,
         });
 
         message = error ? "Error: " + error.message : "Bewertung eingereicht!";
+        rated = true;
+        goto("/");
     }
 </script>
 
@@ -69,53 +75,56 @@
         {/each}
     </ul>
 {/if}
+{#if rated === false}
+    {#if user}
+        <form on:submit|preventDefault={addItem}>
+            <label
+                >Wie heißt du?<input
+                    bind:value={name}
+                    placeholder="Jon Doe"
+                    required
+                /></label
+            >
+            <label>
+                Auf einer Skala von 1 bis 5, wie fandest du den Talk?
+                <input
+                    bind:value={rating}
+                    type="number"
+                    min="1"
+                    max="5"
+                    step="1"
+                    placeholder="Bewertung"
+                    required
+                />
+            </label>
+            <label>
+                (Optionaler) Kommentar <input
+                    bind:value={comment}
+                    placeholder="Mir hat gefehlt, ..."
+                /></label
+            >
+            <button type="submit">Bewerten</button>
+        </form>
 
-{#if user}
-    <form on:submit|preventDefault={addItem}>
-        <label
-            >Wie heißt du?<input
-                bind:value={name}
-                placeholder="Jon Doe"
-                required
-            /></label
+        <br /><br /><br /><button
+            class="outline secondary"
+            on:click={() => {
+                db.auth.signOut();
+            }}>Ausloggen</button
         >
+    {:else}
         <label>
-            Auf einer Skala von 1 bis 5, wie fandest du den Talk?
+            E-Mail-Adresse zum mitmachen
             <input
-                bind:value={rating}
-                type="number"
-                min="1"
-                max="5"
-                step="1"
-                placeholder="Bewertung"
+                type="email"
+                bind:value={email}
+                placeholder="jon@doe.org"
                 required
             />
         </label>
-        <label>
-            (Optionaler) Kommentar <input
-                bind:value={comment}
-                placeholder="Mir hat gefehlt, ..."
-            /></label
-        >
-        <button type="submit">Bewerten</button>
-    </form>
-
-    <br /><br /><br /><button
-        class="outline secondary"
-        on:click={() => {
-            db.auth.signOut();
-        }}>Ausloggen</button
-    >
+        <button on:click={sendMagicLink}>Schick mir Magie!</button>
+        <p>{message}</p>
+    {/if}
 {:else}
-    <label>
-        E-Mail-Adresse zum mitmachen
-        <input
-            type="email"
-            bind:value={email}
-            placeholder="jon@doe.org"
-            required
-        />
-    </label>
-    <button on:click={sendMagicLink}>Schick mir Magie!</button>
-    <p>{message}</p>
+    <h3>Danke für deine Bewertung.</h3>
 {/if}
