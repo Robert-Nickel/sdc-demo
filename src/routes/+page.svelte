@@ -3,13 +3,17 @@
     import { db } from "$lib/supabaseClient";
     import type { User } from "@supabase/supabase-js";
 
-    let items: any[] = [];
-    let error: string | null = null;
+    let evaluations: any[] = [];
+
     let user: User | null | undefined = null;
     let email = "";
+
     let message = "";
+    let error: string | null = null;
+
     let name = "";
-    let rating: number = 0;
+    let rating: number = 1;
+    let comment = "";
 
     onMount(async () => {
         const {
@@ -22,8 +26,8 @@
             error = err.message;
             console.error("Supabase Error:", err);
         } else {
-            items = data;
-            console.log("Fetched Items:", data);
+            evaluations = data;
+            console.log("Fetched Evaluations:", data);
         }
     });
 
@@ -52,46 +56,66 @@
     }
 </script>
 
+<h1>Bewertungen</h1>
 {#if error}
     <p>Error: {error}</p>
-{:else if items.length === 0}
-    <p>Loading...</p>
+{:else if evaluations.length === 0}
+    <p>Noch keine Bewertungen</p>
 {:else}
-    <h1>Alle Bewertungen für Roberts Talk</h1>
+    <h1>Alle Bewertungen</h1>
     <ul>
-        {#each items as item}
-            <li>{item.name} rated {item.rating}</li>
+        {#each evaluations as e}
+            <li>{e.name} rated {e.rating}</li>
         {/each}
     </ul>
 {/if}
 
 {#if user}
     <form on:submit|preventDefault={addItem}>
-        <input bind:value={name} placeholder="Dein Name" required />
-        <input
-            bind:value={rating}
-            type="number"
-            min="1"
-            max="5"
-            step="1"
-            placeholder="Bewertung"
-            required
-        />
+        <label
+            >Wie heißt du?<input
+                bind:value={name}
+                placeholder="Jon Doe"
+                required
+            /></label
+        >
+        <label>
+            Auf einer Skala von 1 bis 5, wie fandest du den Talk?
+            <input
+                bind:value={rating}
+                type="number"
+                min="1"
+                max="5"
+                step="1"
+                placeholder="Bewertung"
+                required
+            />
+        </label>
+        <label>
+            (Optionaler) Kommentar <input
+                bind:value={comment}
+                placeholder="Mir hat gefehlt, ..."
+            /></label
+        >
         <button type="submit">Bewerten</button>
     </form>
 
-    <br /><br /><br /><button class="outline secondary"
+    <br /><br /><br /><button
+        class="outline secondary"
         on:click={() => {
             db.auth.signOut();
         }}>Ausloggen</button
     >
 {:else}
-    <!-- <a href="/login">Einloggen, um eine Bewertung abgeben.</a>-->
-    <input
-        type="email"
-        bind:value={email}
-        placeholder="E-Mail-Adresse zum mitmachen"
-    />
-    <button on:click={sendMagicLink}>Send Magic Link</button>
+    <label>
+        E-Mail-Adresse zum mitmachen
+        <input
+            type="email"
+            bind:value={email}
+            placeholder="jon@doe.org"
+            required
+        />
+    </label>
+    <button on:click={sendMagicLink}>Schick mir Magie!</button>
     <p>{message}</p>
 {/if}
