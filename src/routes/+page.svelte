@@ -3,9 +3,10 @@
     import { db } from "$lib/supabaseClient";
     import type { User } from "@supabase/supabase-js";
     import type { RealtimeChannel } from "@supabase/supabase-js";
+    import type { Evaluation } from "$lib/types";
 
-    let evaluations: any[] = [];
-    let myEvaluation: any;
+    let evaluations: Evaluation[] = [];
+    let myEvaluation: Evaluation | null;
     let channel: RealtimeChannel;
 
     let user: User | null | undefined = null;
@@ -25,10 +26,6 @@
         user = session?.user;
 
         await loadEvaluations();
-        if (user) {
-            myEvaluation =
-                evaluations.find((e) => e.user_id === user?.id) ?? null;
-        }
 
         channel = db
             .channel("public:evaluations")
@@ -36,7 +33,7 @@
                 "postgres_changes",
                 { event: "INSERT", schema: "public", table: "evaluations" },
                 (payload) => {
-                    const newEval = payload.new;
+                    const newEval = payload.new as Evaluation;
                     evaluations = [...evaluations, newEval];
                 },
             )
@@ -54,6 +51,10 @@
             console.error("Supabase Error:", err);
         } else {
             evaluations = data;
+            if (user) {
+                myEvaluation =
+                    evaluations.find((e) => e.user_id === user?.id) ?? null;
+            }
         }
     }
 
@@ -72,14 +73,19 @@
             message = "Bitte einloggen, um Roberts Talk zu bewerten.";
             return;
         }
-
-        myEvaluation = {
-            name,
-            rating,
-            comment,
-            user_id: user.id,
-        };
-        const { error } = await db.from("evaluations").insert(myEvaluation);
+        const { data, error } = await db
+            .from("evaluations")
+            .insert({
+                name,
+                rating,
+                comment,
+                user_id: user.id,
+            })
+            .select()
+            .single();
+        if (!error && data) {
+            myEvaluation = data;
+        }
 
         message = error ? "Error: " + error.message : "Bewertung eingereicht!";
         await loadEvaluations();
