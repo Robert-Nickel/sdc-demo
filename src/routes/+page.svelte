@@ -7,11 +7,13 @@
 
     let evaluations: Evaluation[] = [];
     let myEvaluation: Evaluation | null;
+
     let channel: RealtimeChannel;
 
     let user: User | null | undefined = null;
     let email = "";
 
+    let isLoading = true;
     let message = "";
     let error: string | null = null;
 
@@ -26,6 +28,7 @@
         user = session?.user;
 
         await loadEvaluations();
+        isLoading = false;
 
         channel = db
             .channel("public:evaluations")
@@ -104,16 +107,19 @@
 
 {#if error}
     <p>Error: {error}</p>
-{:else if evaluations.length === 0}
-    <p>Noch keine Bewertungen</p>
-{:else}
-    <ul>
-        {#each evaluations as e}
-            <li>{e.name} rated {e.rating}</li>
-        {/each}
-    </ul>
+{:else if !isLoading}
+    {#if evaluations.length === 0}
+        <p>Noch keine Bewertungen</p>
+    {:else}
+        <ul>
+            {#each evaluations as e}
+                <li>{e.name} rated {e.rating}</li>
+            {/each}
+        </ul>
+    {/if}
 {/if}
-{#if user}
+
+{#if user && !isLoading}
     {#if !myEvaluation}
         <form on:submit|preventDefault={addItem}>
             <label
