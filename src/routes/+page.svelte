@@ -105,23 +105,23 @@
 <h1>Bewertungen</h1>
 <p>Ø Bewertung: {getAverageRating()} / 5</p>
 
-{#if error}
-    <p>Error: {error}</p>
-{:else if !isLoading}
-    {#if evaluations.length === 0}
+{#if isLoading}
+    <p>Sekunde...</p>
+{:else}
+    {#if error}
+        <p>Error: {error}</p>
+    {:else if evaluations.length === 0}
         <p>Noch keine Bewertungen</p>
     {:else}
         <ul>
             {#each evaluations as e}
                 <li>{e.name} rated {e.rating}</li>
+                {#if e.comment}
+                    <ul><li>Kommentar: "{e.comment}"</li></ul>
+                {/if}
             {/each}
         </ul>
     {/if}
-{:else}
-    <p>Sekunde...</p>
-{/if}
-
-{#if !isLoading}
     {#if user}
         {#if !myEvaluation}
             <form on:submit|preventDefault={addItem}>
@@ -179,6 +179,4 @@
         <button on:click={sendMagicLink}>Schick mir Magie!</button>
         <p>{message}</p>
     {/if}
-{:else}
-    <p>Sekunde...</p>
 {/if}
