@@ -109,13 +109,18 @@
             <button type="submit">Bewerten</button>
         </form>
 
-        <br /><br /><br /><button
+        <br /><br /><br />
+
+        <button
             class="outline secondary"
-            on:click={() => {
-                db.auth.signOut();
-                goto("/");
-            }}>Ausloggen</button
+            on:click={async () => {
+                await db.auth.signOut();
+                user = null;
+                rated = false;
+            }}
         >
+            Ausloggen
+        </button>
     {:else}
         <label>
             E-Mail-Adresse zum mitmachen
