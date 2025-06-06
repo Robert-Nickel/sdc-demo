@@ -5,6 +5,7 @@
     import type { RealtimeChannel } from "@supabase/supabase-js";
 
     let evaluations: any[] = [];
+    let myEvaluation: any;
     let channel: RealtimeChannel;
 
     let user: User | null | undefined = null;
@@ -17,14 +18,17 @@
     let rating: number = 1;
     let comment = "";
 
-    let rated = false;
-
     onMount(async () => {
         const {
             data: { session },
         } = await db.auth.getSession();
         user = session?.user;
+
         await loadEvaluations();
+        if (user) {
+            myEvaluation =
+                evaluations.find((e) => e.user_id === user?.id) ?? null;
+        }
 
         channel = db
             .channel("public:evaluations")
@@ -69,14 +73,15 @@
             return;
         }
 
-        const { error } = await db.from("evaluations").insert({
+        myEvaluation = {
             name,
             rating,
             comment,
-        });
+            user_id: user.id,
+        };
+        const { error } = await db.from("evaluations").insert(myEvaluation);
 
         message = error ? "Error: " + error.message : "Bewertung eingereicht!";
-        rated = true;
         await loadEvaluations();
     }
 
@@ -103,7 +108,7 @@
     </ul>
 {/if}
 {#if user}
-    {#if rated === false}
+    {#if !myEvaluation}
         <form on:submit|preventDefault={addItem}>
             <label
                 >Wie heißt du?<input
@@ -142,7 +147,6 @@
         on:click={async () => {
             await db.auth.signOut();
             user = null;
-            rated = false;
         }}
     >
         Ausloggen
