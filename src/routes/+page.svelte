@@ -117,62 +117,68 @@
             {/each}
         </ul>
     {/if}
+{:else}
+    <p>Sekunde...</p>
 {/if}
 
-{#if user && !isLoading}
-    {#if !myEvaluation}
-        <form on:submit|preventDefault={addItem}>
-            <label
-                >Wie heißt du?<input
-                    bind:value={name}
-                    placeholder="Jon Doe"
-                    required
-                /></label
-            >
-            <label>
-                Auf einer Skala von 1 bis 5, wie fandest du den Talk?
-                <input
-                    bind:value={rating}
-                    type="number"
-                    min="1"
-                    max="5"
-                    step="1"
-                    placeholder="Bewertung"
-                    required
-                />
-            </label>
-            <label>
-                (Optionaler) Kommentar <input
-                    bind:value={comment}
-                    placeholder="Mir hat gefehlt, ..."
-                /></label
-            >
-            <button type="submit">Bewerten</button>
-        </form>
-    {:else}
-        <h3>Danke für deine Bewertung.</h3>
-    {/if}
-    <br /><br /><br />
+{#if !isLoading}
+    {#if user}
+        {#if !myEvaluation}
+            <form on:submit|preventDefault={addItem}>
+                <label
+                    >Wie heißt du?<input
+                        bind:value={name}
+                        placeholder="Jon Doe"
+                        required
+                    /></label
+                >
+                <label>
+                    Auf einer Skala von 1 bis 5, wie fandest du den Talk?
+                    <input
+                        bind:value={rating}
+                        type="number"
+                        min="1"
+                        max="5"
+                        step="1"
+                        placeholder="Bewertung"
+                        required
+                    />
+                </label>
+                <label>
+                    (Optionaler) Kommentar <input
+                        bind:value={comment}
+                        placeholder="Mir hat gefehlt, ..."
+                    /></label
+                >
+                <button type="submit">Bewerten</button>
+            </form>
+        {:else}
+            <h3>Danke für deine Bewertung.</h3>
+        {/if}
+        <br /><br /><br />
 
-    <button
-        class="outline secondary"
-        on:click={async () => {
-            await db.auth.signOut();
-            user = null;
-        }}
-    >
-        Ausloggen
-    </button>
+        <button
+            class="outline secondary"
+            on:click={async () => {
+                await db.auth.signOut();
+                user = null;
+            }}
+        >
+            Ausloggen
+        </button>
+    {:else}
+        <label>
+            E-Mail-Adresse zum mitmachen
+            <input
+                type="email"
+                bind:value={email}
+                placeholder="jon@doe.org"
+                required
+            />
+        </label>
+        <button on:click={sendMagicLink}>Schick mir Magie!</button>
+        <p>{message}</p>
+    {/if}
 {:else}
-    <label>
-        E-Mail-Adresse zum mitmachen
-        <input
-            type="email"
-            bind:value={email}
-            placeholder="jon@doe.org"
-            required
-        />
-    </label>
-    <button on:click={sendMagicLink}>Schick mir Magie!</button>
-    <p>{message}</p>
+    <p>Sekunde...</p>
 {/if}
