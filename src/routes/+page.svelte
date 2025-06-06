@@ -64,9 +64,18 @@
         rated = true;
         await loadEvaluations();
     }
+
+    function getAverageRating(): string {
+        if (evaluations.length === 0) return "–";
+        const sum = evaluations.reduce((acc, curr) => acc + curr.rating, 0);
+        const avg = sum / evaluations.length;
+        return avg.toFixed(1);
+    }
 </script>
 
 <h1>Bewertungen</h1>
+<p>Ø Bewertung: {getAverageRating()} / 5</p>
+
 {#if error}
     <p>Error: {error}</p>
 {:else if evaluations.length === 0}
