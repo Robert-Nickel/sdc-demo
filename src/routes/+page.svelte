@@ -1,10 +1,11 @@
 <script lang="ts">
-    import { onMount } from "svelte";
+    import { onMount, onDestroy } from "svelte";
     import { db } from "$lib/supabaseClient";
     import type { User } from "@supabase/supabase-js";
-    import { goto } from "$app/navigation";
+    import type { RealtimeChannel } from "@supabase/supabase-js";
 
     let evaluations: any[] = [];
+    let channel: RealtimeChannel;
 
     let user: User | null | undefined = null;
     let email = "";
@@ -24,17 +25,31 @@
         } = await db.auth.getSession();
         user = session?.user;
         await loadEvaluations();
+
+        channel = db
+            .channel("public:evaluations")
+            .on(
+                "postgres_changes",
+                { event: "INSERT", schema: "public", table: "evaluations" },
+                (payload) => {
+                    const newEval = payload.new;
+                    evaluations = [...evaluations, newEval];
+                },
+            )
+            .subscribe();
+    });
+
+    onDestroy(() => {
+        if (channel) db.removeChannel(channel);
     });
 
     async function loadEvaluations() {
         const { data, error: err } = await db.from("evaluations").select("*");
-
         if (err) {
             error = err.message;
             console.error("Supabase Error:", err);
         } else {
             evaluations = data;
-            console.log("Fetched Evaluations:", data);
         }
     }
 
