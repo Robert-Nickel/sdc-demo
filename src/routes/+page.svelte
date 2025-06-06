@@ -78,8 +78,8 @@
         {/each}
     </ul>
 {/if}
-{#if rated === false}
-    {#if user}
+{#if user}
+    {#if rated === false}
         <form on:submit|preventDefault={addItem}>
             <label
                 >Wie heißt du?<input
@@ -108,32 +108,31 @@
             >
             <button type="submit">Bewerten</button>
         </form>
-
-        <br /><br /><br />
-
-        <button
-            class="outline secondary"
-            on:click={async () => {
-                await db.auth.signOut();
-                user = null;
-                rated = false;
-            }}
-        >
-            Ausloggen
-        </button>
     {:else}
-        <label>
-            E-Mail-Adresse zum mitmachen
-            <input
-                type="email"
-                bind:value={email}
-                placeholder="jon@doe.org"
-                required
-            />
-        </label>
-        <button on:click={sendMagicLink}>Schick mir Magie!</button>
-        <p>{message}</p>
+        <h3>Danke für deine Bewertung.</h3>
     {/if}
+    <br /><br /><br />
+
+    <button
+        class="outline secondary"
+        on:click={async () => {
+            await db.auth.signOut();
+            user = null;
+            rated = false;
+        }}
+    >
+        Ausloggen
+    </button>
 {:else}
-    <h3>Danke für deine Bewertung.</h3>
+    <label>
+        E-Mail-Adresse zum mitmachen
+        <input
+            type="email"
+            bind:value={email}
+            placeholder="jon@doe.org"
+            required
+        />
+    </label>
+    <button on:click={sendMagicLink}>Schick mir Magie!</button>
+    <p>{message}</p>
 {/if}
